@@ -19,12 +19,13 @@ This project implements a simple ToDo List web application using Spring Boot.
 ### Running the Application
 
 1. Clone the repository:
-git clone https://github.com/yourusername/todo-list.git
-cd todo-list
+   git clone https://github.com/yourusername/todo-list.git
+   cd todo-list
 
 2. Build and run the application using Maven:
+   mvn spring-boot:run
    
-3. Access the application at `http://localhost:8080`.
+4. Access the application at `http://localhost:8080`.
    
 ## Process Overview
 
@@ -55,6 +56,7 @@ cd todo-list
 | password     | VARCHAR(255) | NOT NULL                           |
 | created_at   | TIMESTAMP    | NOT NULL, DEFAULT CURRENT_TIMESTAMP|
 | updated_at   | TIMESTAMP    | NOT NULL, DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP |
+| user_id      | BIGINT       | NOT NULL                           |
 
 ### Task Table
 
