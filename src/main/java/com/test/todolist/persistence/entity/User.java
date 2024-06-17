@@ -2,33 +2,35 @@ package com.test.todolist.persistence.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.time.Instant;
 
 @Entity
+@Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
-@Table(name = "task")
-public class Task implements Serializable {
+@Table(name = "user")
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String title;
-    private String description;
+    @Column(unique = true, nullable = false)
+    private String username;
+
+    @Column(nullable = false)
+    private String password;
+    private String confirmPassword;
     private Instant createdAt;
     private Instant updatedAt;
-    private Boolean done;
 
     @Override
     public String toString(){
-        return String.format("Task{id=%d, title='%s', description='%s', createdAt='%s', updatedAt='%s', done='%s'}",
-                id, title, description, createdAt, updatedAt, done);
+        return String.format("Task{id=%d, username='%s', createdAt='%s', updatedAt='%s'}", id, username, createdAt, updatedAt);
     }
-
 }

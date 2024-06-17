@@ -1,10 +1,11 @@
 package com.test.todolist.controller;
 
 import com.test.todolist.service.TaskService;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.servlet.ModelAndView;
 
 @Controller
 public class HomeController {
@@ -13,9 +14,17 @@ public class HomeController {
     private TaskService taskService;
 
     @GetMapping("/")
-    public ModelAndView index(){
-        ModelAndView modelAndView = new ModelAndView("index");
-        modelAndView.addObject("task", taskService.getAll());
-        return modelAndView;
+    public String index(Model model, HttpSession session){
+        String username = (String) session.getAttribute("loggedInUser");
+
+        if (username != null) {
+            model.addAttribute("username", username);
+            model.addAttribute("isLoggedIn", true);
+        } else {
+            model.addAttribute("isLoggedIn", false);
+        }
+
+        model.addAttribute("task", taskService.getAll());
+        return "index";
     }
 }
