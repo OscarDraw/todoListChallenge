@@ -1,6 +1,8 @@
 package com.test.todolist.controller;
 
+import com.test.todolist.DTO.TaskDTO;
 import com.test.todolist.persistence.entity.Task;
+import com.test.todolist.persistence.entity.User;
 import com.test.todolist.service.TaskService;
 import com.test.todolist.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -22,10 +25,37 @@ public class TaskController {
     @Autowired
     private UserService userService;
 
-    @RequestMapping(value="/create-task", method = RequestMethod.POST)
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+    @RequestMapping(value="/get-task/{username}", method = RequestMethod.GET)
+    @ResponseBody
+    public Iterable<Task> getTaskByUsername(@PathVariable String username) {
         try {
-            return ResponseEntity.ok(taskService.save(task));
+            return taskService.getTasksByUsername(username);
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+            return null;
+        }
+    }
+
+    @RequestMapping(value="/get-all-task", method = RequestMethod.GET)
+    @ResponseBody
+    public Iterable<Task> getTask() {
+        try {
+            return taskService.getAll();
+        } catch (Exception e) {
+            System.out.println("Error: " + e);
+            return null;
+        }
+    }
+
+    @RequestMapping(value="/create-task", method = RequestMethod.POST)
+    public ResponseEntity<Task> createTask(@RequestBody TaskDTO taskDTO) {
+        try {
+            Task task = new Task();
+            task.setTitle(taskDTO.getTitle());
+            task.setDescription(taskDTO.getDescription());
+            task.setDone(taskDTO.getDone());
+
+            return ResponseEntity.ok(taskService.save(task, taskDTO.getUserId()));
         } catch (Exception e) {
             System.out.println("Error: " + e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -33,16 +63,23 @@ public class TaskController {
     }
 
     @RequestMapping(value="/update-task", method = RequestMethod.POST)
-    public ResponseEntity<Task> updateTask(@RequestBody Task task) {
+    public ResponseEntity<Task> updateTask(@RequestBody TaskDTO taskDTO) {
         try {
-            Optional<Task> existingTaskOpt = taskService.getById(task.getId());
+            Optional<Task> existingTaskOpt = taskService.getById(taskDTO.getId());
             if (existingTaskOpt.isPresent()) {
                 Task existingTask = existingTaskOpt.get();
-                existingTask.setTitle(task.getTitle());
-                existingTask.setDescription(task.getDescription());
-                existingTask.setDone(task.getDone());
+                existingTask.setTitle(taskDTO.getTitle());
+                existingTask.setDescription(taskDTO.getDescription());
+                existingTask.setDone(taskDTO.getDone());
                 existingTask.setUpdatedAt(Instant.now());
-                return ResponseEntity.ok(taskService.save(existingTask));
+
+                if (taskDTO.getUserId() != null) {
+                    Optional<User> userOpt = userService.findById(taskDTO.getUserId());
+                    userOpt.ifPresent(existingTask::setUser);
+                }
+
+                Task savedTask = taskService.save(existingTask, taskDTO.getUserId());
+                return ResponseEntity.ok(savedTask);
             } else {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }

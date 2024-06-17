@@ -25,6 +25,10 @@ public class Task implements Serializable {
     private Instant updatedAt;
     private Boolean done;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
     @Override
     public String toString(){
         return String.format("Task{id=%d, title='%s', description='%s', createdAt='%s', updatedAt='%s', done='%s'}",

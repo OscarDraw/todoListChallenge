@@ -15,10 +15,10 @@
     <div class="col-lg-10 mx-auto p-4 py-md-5">
         <h1>SpringBoot Todo List Challenge</h1>
         <div th:if="${isLoggedIn}">
-            <p>Welcome, <span th:text="${username}"></span>!</p>
+            <p>Welcome, <span id="usernameAuth" th:text="${username}"></span><span id="useridAuth" th:text="${userid}" style="display:none"></span>!</p>
             <a href="#" th:onclick="|logout(event)|">Logout</a>
 
-            <table class="table table-condensed table-bordered table-striped table-hover table-responsive avi">
+            <table id="taskTable" class="table table-condensed table-bordered table-striped table-hover table-responsive avi">
                 <thead>
                 <tr>
                     <th>Id</th>
@@ -31,24 +31,6 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="item : ${task}" th:id="'task-row-' + ${item.id}">
-                    <td th:text="${item.id}"></td>
-                    <td th:text="${item.title}"></td>
-                    <td th:text="${item.description}"></td>
-                    <td>
-                        <input type="checkbox" th:checked="${item.done}"/>
-                    </td>
-                    <td th:text="${item.createdAt}"></td>
-                    <td th:text="${item.updatedAt}"></td>
-                    <td>
-                        <button class="btn btn-info" th:id="'edit-task-' + ${item.id}" onclick="openEditModal(this)">
-                            <i class="bi bi-pencil-fill"></i> Edit
-                        </button>
-                        <button class="btn btn-danger" th:id="'delete-task-' + ${item.id}" onclick="deleteTask(this)">
-                            <i class="bi bi-trash-fill"></i> Delete
-                        </button>
-                    </td>
-                </tr>
                 </tbody>
             </table>
             <p>
@@ -107,7 +89,7 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="taskDescription">Description</label>
-                                    <textarea class="form-control" id="taskDescription" name="description" required></textarea>
+                                    <textarea class="form-control" id="taskDescription" name="description" rows="3"></textarea>
                                 </div>
                                 <div class="form-group">
                                     <label for="taskDone">Done</label>
@@ -126,6 +108,34 @@
 
     </div>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function fetchTasks(username = '') {
+                const url = `/get-task/${username}`;
+                console.log(url);
+                return fetch(url)
+                    .then(response => response.json())
+                    .then(data => data)
+                    .catch(error => console.error('Error fetching tasks:', error));
+            }
+
+            function renderTasks(tasks) {
+                const tbody = document.querySelector('#taskTable tbody');
+                tbody.innerHTML = '';
+                tasks.forEach(task => {
+                    addTaskToTable(task);
+                });
+            }
+
+            async function loadTasks() {
+                var username = document.getElementById("usernameAuth").textContent;
+                const tasks = await fetchTasks(username);
+                renderTasks(tasks);
+            }
+
+            loadTasks();
+        });
+
         function openEditModal(button) {
             document.getElementById("createTaskForm").reset();
             const taskId = button.id.split('-')[2];
@@ -146,11 +156,13 @@
 
         async function createTask(event) {
             event.preventDefault();
+            var userid = document.getElementById("useridAuth").textContent;
 
             const formData = {
                 title: document.getElementById('taskTitle').value,
                 description: document.getElementById('taskDescription').value,
-                done: document.getElementById('taskDone').checked
+                done: document.getElementById('taskDone').checked,
+                userId: userid
             };
 
             try {
@@ -179,12 +191,14 @@
 
         async function updateTask() {
             event.preventDefault();
+            var userid = document.getElementById("useridAuth").textContent;
 
             const formData = {
                 id: document.getElementById('editTaskId').value,
                 title: document.getElementById('editTaskTitle').value,
                 description: document.getElementById('editTaskDescription').value,
-                done: document.getElementById('editTaskDone').checked
+                done: document.getElementById('editTaskDone').checked,
+                userId: userid
             };
 
             try {
@@ -221,31 +235,8 @@
             });
         }
 
-        function addTaskToTable(task) {
-            const tbody = document.querySelector('tbody');
-            const newRow = document.createElement('tr');
-            newRow.id = `task-row-${task.id}`;
-            newRow.innerHTML = `
-                <td>${task.id}</td>
-                <td>${task.title}</td>
-                <td>${task.description}</td>
-                <td><input type="checkbox" ${task.done ? 'checked' : ''}/></td>
-                <td>${task.createdAt}</td>
-                <td>${task.updatedAt}</td>
-                <td>
-                    <button class='btn btn-info' id='edit-task-${task.id}' onclick='openEditModal(this)'>
-                        <i class='bi bi-pencil-fill'></i> Edit
-                    </button>
-                    <button class='btn btn-danger' id='delete-task-${task.id}' onclick='deleteTask(${task.id})'>
-                        <i class='bi bi-trash-fill'></i> Delete
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(newRow);
-        }
-
-        async function deleteTask(button) {
-            const taskId = button.id.split('-')[2];
+        async function deleteTask(taskId) {
+            console.log(taskId)
             try {
                 const response = await fetch(`/delete-task/${taskId}`, {
                     method: 'DELETE'
@@ -260,6 +251,29 @@
             } catch (error) {
                 console.error('Error:', error);
             }
+        }
+
+        function addTaskToTable(task) {
+            const tbody = document.querySelector('tbody');
+            const newRow = document.createElement('tr');
+            newRow.id = `task-row-${task.id}`;
+            newRow.innerHTML = `
+                <td>${task.id}</td>
+                <td>${task.title}</td>
+                <td>${task.description}</td>
+                <td><input type="checkbox" ${task.done ? 'checked' : ''} disabled/></td>
+                <td>${task.createdAt}</td>
+                <td>${task.updatedAt}</td>
+                <td>
+                    <button class='btn btn-info' id='edit-task-${task.id}' onclick='openEditModal(this)'>
+                        <i class='bi bi-pencil-fill'></i> Edit
+                    </button>
+                    <button class='btn btn-danger' id='delete-task-${task.id}' onclick='deleteTask(${task.id})'>
+                        <i class='bi bi-trash-fill'></i> Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
         }
 
         function logout(event) {
