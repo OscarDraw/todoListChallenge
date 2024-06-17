@@ -5,12 +5,21 @@
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"/>
+    <style>
+        form input[type='checkbox'] {
+            accent-color: red;
+        }
+    </style>
 </head>
 <body>
     <div class="col-lg-10 mx-auto p-4 py-md-5">
         <h1>SpringBoot Todo List Challenge</h1>
-        <table class="table table-condensed table-bordered table-striped table-hover table-responsive avi">
-            <thead>
+        <div th:if="${isLoggedIn}">
+            <p>Welcome, <span th:text="${username}"></span>!</p>
+            <a href="#" th:onclick="|logout(event)|">Logout</a>
+
+            <table class="table table-condensed table-bordered table-striped table-hover table-responsive avi">
+                <thead>
                 <tr>
                     <th>Id</th>
                     <th>Title</th>
@@ -20,36 +29,255 @@
                     <th>Update At</th>
                     <th>Actions</th>
                 </tr>
-            </thead>
-            <tbody>
-                <tr th:each="item : ${task}">
+                </thead>
+                <tbody>
+                <tr th:each="item : ${task}" th:id="'task-row-' + ${item.id}">
                     <td th:text="${item.id}"></td>
                     <td th:text="${item.title}"></td>
                     <td th:text="${item.description}"></td>
                     <td>
-                        <span th:if="${item.done} == true" th:text="Done"/>
-                        <span th:unless="${item.done} == true" th:text="Pendin"/>
+                        <input type="checkbox" th:checked="${item.done}"/>
                     </td>
                     <td th:text="${item.createdAt}"></td>
                     <td th:text="${item.updatedAt}"></td>
                     <td>
-                        <a class="btn btn-info" href="#">
-                            <i class="bi bi-plus-pencil-fill"></i> Edit
-                        </a>
-                        <a class="btn btn-danger" href="#">
-                            <i class="bi bi-plus-trash-fill"></i> Delete
-                        </a>
+                        <button class="btn btn-info" th:id="'edit-task-' + ${item.id}" onclick="openEditModal(this)">
+                            <i class="bi bi-pencil-fill"></i> Edit
+                        </button>
+                        <button class="btn btn-danger" th:id="'delete-task-' + ${item.id}" onclick="deleteTask(this)">
+                            <i class="bi bi-trash-fill"></i> Delete
+                        </button>
                     </td>
                 </tr>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+            <p>
+                <a class="btn btn-outline-success" href="#" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                    <i class="bi bi-plus-square-fill"></i> Create task
+                </a>
+            </p>
 
-        <p>
-            <a class="btn btn-outline-success" href="#">
-                <i class="bi bi-plus-square-fill"></i> Create task
-            </a>
-        </p>
+            <div class="modal fade" id="editTaskModal" tabindex="-1" aria-labelledby="editTaskModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editTaskModalLabel">Edit task</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form id="editTaskForm">
+                            <div class="modal-body">
+                                <input type="hidden" id="editTaskId" name="id">
+                                <div class="mb-3">
+                                    <label for="editTaskTitle" class="form-label">Title</label>
+                                    <input type="text" class="form-control" id="editTaskTitle" name="title" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="editTaskDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" id="editTaskDescription" name="description" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="editTaskDone" name="done">
+                                    <label class="form-check-label" for="editTaskDone">Done</label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="updateTask()">Update</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal for Creating Task -->
+            <div class="modal fade" id="createTaskModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createTaskModalLabel">Create Task</h5>
+                            <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="createTaskForm" onsubmit="createTask(event)">
+                                <div class="form-group">
+                                    <label for="taskTitle">Title</label>
+                                    <input type="text" class="form-control" id="taskTitle" name="title" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskDescription">Description</label>
+                                    <textarea class="form-control" id="taskDescription" name="description" required></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="taskDone">Done</label>
+                                    <input type="checkbox" id="taskDone" name="done">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save Task</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div th:if="${!isLoggedIn}">
+            <p>Please <a th:href="@{/login}">login</a> or <a th:href="@{/register}">sign up</a>.</p>
+        </div>
+
     </div>
+    <script>
+        function openEditModal(button) {
+            document.getElementById("createTaskForm").reset();
+            const taskId = button.id.split('-')[2];
+            const row = document.getElementById(`task-row-${taskId}`);
+
+            const taskTitle = row.cells[1].textContent;
+            const taskDescription = row.cells[2].textContent;
+            const taskDone = row.cells[3].querySelector('input').checked;
+
+            document.getElementById('editTaskId').value = taskId;
+            document.getElementById('editTaskTitle').value = taskTitle;
+            document.getElementById('editTaskDescription').value = taskDescription;
+            document.getElementById('editTaskDone').checked = taskDone;
+
+            var myModal = new bootstrap.Modal(document.getElementById('editTaskModal'));
+            myModal.show();
+        }
+
+        async function createTask(event) {
+            event.preventDefault();
+
+            const formData = {
+                title: document.getElementById('taskTitle').value,
+                description: document.getElementById('taskDescription').value,
+                done: document.getElementById('taskDone').checked
+            };
+
+            try {
+                const response = await fetch('/create-task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const newTask = await response.json();
+                    addTaskToTable(newTask);
+                    var myModalEl = document.getElementById('createTaskModal');
+                    var modal = bootstrap.Modal.getInstance(myModalEl)
+                    modal.hide();
+                    document.getElementById("createTaskForm").reset();
+                } else {
+                    console.error('Error creating task:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        async function updateTask() {
+            event.preventDefault();
+
+            const formData = {
+                id: document.getElementById('editTaskId').value,
+                title: document.getElementById('editTaskTitle').value,
+                description: document.getElementById('editTaskDescription').value,
+                done: document.getElementById('editTaskDone').checked
+            };
+
+            try {
+                const response = await fetch('/update-task', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    const updatedTask = await response.json();
+                    updateTaskInTable(updatedTask);
+                    var editModal = bootstrap.Modal.getInstance(document.getElementById('editTaskModal'));
+                    editModal.hide();
+                } else {
+                    console.error('Error updating task:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function updateTaskInTable(updatedTask) {
+            const rows = document.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                if (row.cells[0].textContent === updatedTask.id.toString()) {
+                    row.cells[1].textContent = updatedTask.title;
+                    row.cells[2].textContent = updatedTask.description;
+                    row.cells[3].innerHTML = `<input type="checkbox" ${updatedTask.done ? 'checked' : ''}/>`;
+                    return;
+                }
+            });
+        }
+
+        function addTaskToTable(task) {
+            const tbody = document.querySelector('tbody');
+            const newRow = document.createElement('tr');
+            newRow.id = `task-row-${task.id}`;
+            newRow.innerHTML = `
+                <td>${task.id}</td>
+                <td>${task.title}</td>
+                <td>${task.description}</td>
+                <td><input type="checkbox" ${task.done ? 'checked' : ''}/></td>
+                <td>${task.createdAt}</td>
+                <td>${task.updatedAt}</td>
+                <td>
+                    <button class='btn btn-info' id='edit-task-${task.id}' onclick='openEditModal(this)'>
+                        <i class='bi bi-pencil-fill'></i> Edit
+                    </button>
+                    <button class='btn btn-danger' id='delete-task-${task.id}' onclick='deleteTask(${task.id})'>
+                        <i class='bi bi-trash-fill'></i> Delete
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+        }
+
+        async function deleteTask(button) {
+            const taskId = button.id.split('-')[2];
+            try {
+                const response = await fetch(`/delete-task/${taskId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    const row = document.getElementById(`task-row-${taskId}`);
+                    row.parentNode.removeChild(row);
+                } else {
+                    console.error('Error deleting task:', await response.text());
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function logout(event) {
+            event.preventDefault();
+            fetch('/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => {
+                if (response.ok) {
+                    window.location.href = '/';
+                }
+            }).catch(error => {
+                console.error('Error during logout:', error);
+            });
+        }
+    </script>
     <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
 </body>
 </html>

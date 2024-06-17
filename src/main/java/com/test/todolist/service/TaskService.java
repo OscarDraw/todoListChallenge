@@ -1,6 +1,7 @@
 package com.test.todolist.service;
 
 import com.test.todolist.persistence.entity.Task;
+import com.test.todolist.persistence.entity.User;
 import com.test.todolist.persistence.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,5 +31,9 @@ public class TaskService {
 
     public void delete(Task task){
         taskRepository.delete(task);
+    }
+
+    public void deleteById(Long id) {
+        taskRepository.deleteById(id);
     }
 }
