@@ -1,0 +1,55 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link th:rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}"/>
+</head>
+<body>
+    <div class="col-lg-10 mx-auto p-4 py-md-5">
+        <h1>SpringBoot Todo List Challenge</h1>
+        <table class="table table-condensed table-bordered table-striped table-hover table-responsive avi">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Title</th>
+                    <th>Description</th>
+                    <th>Is done</th>
+                    <th>Create at</th>
+                    <th>Update At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="item : ${task}">
+                    <td th:text="${item.id}"></td>
+                    <td th:text="${item.title}"></td>
+                    <td th:text="${item.description}"></td>
+                    <td>
+                        <span th:if="${item.done} == true" th:text="Done"/>
+                        <span th:unless="${item.done} == true" th:text="Pendin"/>
+                    </td>
+                    <td th:text="${item.createdAt}"></td>
+                    <td th:text="${item.updatedAt}"></td>
+                    <td>
+                        <a class="btn btn-info" href="#">
+                            <i class="bi bi-plus-pencil-fill"></i> Edit
+                        </a>
+                        <a class="btn btn-danger" href="#">
+                            <i class="bi bi-plus-trash-fill"></i> Delete
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p>
+            <a class="btn btn-outline-success" href="#">
+                <i class="bi bi-plus-square-fill"></i> Create task
+            </a>
+        </p>
+    </div>
+    <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.min.js}"></script>
+</body>
+</html>
