@@ -24,7 +24,7 @@ This project implements a simple ToDo List web application using Spring Boot.
 
 2. Build and run the application using Maven:
    ```mvn spring-boot:run```
-   asegurar que la variable de entorno esté creada %MAVEN_HOME%\bin
+   ensure environment variable is created %MAVEN_HOME%\bin
    
 4. Access the application at `http://localhost:8080`.
    
